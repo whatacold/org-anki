@@ -772,15 +772,18 @@ syntax."
 
 (defun org-anki--write-note (note)
   (let ((fields (org-anki--note-fields note)))
-    (if (org-anki--multiline-front fields)
-        ;; Note with multiline front
+    (unless (>= (length fields) 2)
+      (error "Not enough fields."))
+    (if (or (> (length fields) 2)
+            (org-anki--multiline-front fields))
+        ;; Note with multiline front or having more than 2 fields
         (progn
           (insert "* Note")
           (org-anki--write-note-properties note)
           (--each fields
             (-let [(name . value) it]
               (insert (format "\n** %s\n%s\n" name value)))))
-      ;; Note with single line front
+      ;; Note with single line front or having exactly 2 fields
       (-let [((_ . front) (_ . back)) fields]
         (insert (format "* %s" front))
         (org-anki--write-note-properties note)
